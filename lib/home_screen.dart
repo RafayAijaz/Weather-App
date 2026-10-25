@@ -5,10 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:weather_app/main.dart';
-import 'package:weather_app/secrets.dart';
 import 'package:weather_app/widgets/additional_item.dart';
 import 'package:weather_app/widgets/heading.dart';
 import 'package:weather_app/widgets/hourly_update.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -21,6 +21,8 @@ class _HomeScreenState extends State<HomeScreen> {
   late double temp;
   bool isLoading = false;
   late Future<Map<String, dynamic>> weather;
+  String apiKey = dotenv.env['WEATHER_API_KEY'] ?? '';
+  
 
   Future<Map<String, dynamic>> getCurrentWeather() async {
     try {
@@ -28,7 +30,7 @@ class _HomeScreenState extends State<HomeScreen> {
       String cityName = "Islamabad";
       final res = await http.get(
         Uri.parse(
-          'https://api.openweathermap.org/data/2.5/forecast?q=$cityName&APPID=$openWeatherApiKey',
+          'https://api.openweathermap.org/data/2.5/forecast?q=$cityName&APPID=$apiKey',
         ),
       );
 
