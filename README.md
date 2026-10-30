@@ -87,7 +87,7 @@ Pull fresh data any time. A spinner shows while loading, and a readable message 
 ### App flow
 
 ```mermaid
-flowchart LR
+flowchart TD
     A(["main.dart"]) -->|"load .env"| B["🔑 API key"]
     B --> C["MyApp: light + dark themes"]
     C --> D["SplashScreen: 2 seconds"]
