@@ -88,16 +88,16 @@ Pull fresh data any time. A spinner shows while loading, and a readable message 
 
 ```mermaid
 flowchart LR
-    A([main.dart]) -->|load .env| B[🔑 API key]
-    B --> C[MyApp<br/>light + dark themes]
-    C --> D[SplashScreen<br/>2 seconds]
-    D -->|pushReplacement| E[HomeScreen]
-    E -->|initState / search / refresh| F[[getCurrentWeather]]
-    F -->|GET /data/2.5/forecast| G[(OpenWeatherMap)]
-    G --> H{FutureBuilder}
-    H -->|waiting| I[⏳ Spinner]
-    H -->|error| J[⚠️ Message]
-    H -->|data| K[🌤️ Weather UI]
+    A(["main.dart"]) -->|"load .env"| B["🔑 API key"]
+    B --> C["MyApp: light + dark themes"]
+    C --> D["SplashScreen: 2 seconds"]
+    D -->|"pushReplacement"| E["HomeScreen"]
+    E -->|"initState, search, refresh"| F[["getCurrentWeather()"]]
+    F -->|"GET /forecast"| G[("OpenWeatherMap API")]
+    G --> H{"FutureBuilder"}
+    H -->|"waiting"| I["⏳ Spinner"]
+    H -->|"error"| J["⚠️ Error message"]
+    H -->|"data"| K["🌤️ Weather UI"]
 ```
 
 ### A request, step by step
