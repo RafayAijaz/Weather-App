@@ -1,0 +1,89 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="420" viewBox="0 0 1200 420" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0B1D3A"/>
+      <stop offset="55%" stop-color="#1565C0"/>
+      <stop offset="100%" stop-color="#42A5F5"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0%" stop-color="#FFC107" stop-opacity="0.55"/>
+      <stop offset="100%" stop-color="#FFC107" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="glass" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.22"/>
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0.08"/>
+    </linearGradient>
+    <style>
+      .rays { transform-origin: 930px 175px; animation: spin 24s linear infinite; }
+      .pulse { transform-origin: 930px 175px; animation: pulse 4s ease-in-out infinite; }
+      .cloud1 { animation: drift 7s ease-in-out infinite alternate; }
+      .cloud2 { animation: drift 9s ease-in-out infinite alternate-reverse; opacity: .55; }
+      .star { animation: twinkle 3s ease-in-out infinite; }
+      .s2 { animation-delay: 1s; } .s3 { animation-delay: 2s; }
+      .fade { animation: fadeUp 1.2s ease-out both; }
+      .d2 { animation-delay: .25s; } .d3 { animation-delay: .5s; }
+      @keyframes spin { to { transform: rotate(360deg); } }
+      @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.12); } }
+      @keyframes drift { from { transform: translateX(-18px); } to { transform: translateX(18px); } }
+      @keyframes twinkle { 0%,100% { opacity: .2; } 50% { opacity: 1; } }
+      @keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+  </defs>
+
+  <rect width="1200" height="420" rx="24" fill="url(#sky)"/>
+
+  <!-- stars -->
+  <g fill="#fff">
+    <circle class="star" cx="80" cy="60" r="2"/>
+    <circle class="star s2" cx="300" cy="40" r="1.5"/>
+    <circle class="star s3" cx="520" cy="70" r="2"/>
+    <circle class="star s2" cx="690" cy="35" r="1.5"/>
+    <circle class="star" cx="1120" cy="60" r="2"/>
+    <circle class="star s3" cx="1060" cy="350" r="1.5"/>
+  </g>
+
+  <!-- sun -->
+  <circle class="pulse" cx="930" cy="175" r="150" fill="url(#glow)"/>
+  <g class="rays" stroke="#FFD54F" stroke-width="14" stroke-linecap="round">
+    <line x1="930" y1="45" x2="930" y2="75"/>
+    <line x1="930" y1="275" x2="930" y2="305"/>
+    <line x1="800" y1="175" x2="830" y2="175"/>
+    <line x1="1030" y1="175" x2="1060" y2="175"/>
+    <line x1="838" y1="83" x2="859" y2="104"/>
+    <line x1="1001" y1="246" x2="1022" y2="267"/>
+    <line x1="838" y1="267" x2="859" y2="246"/>
+    <line x1="1001" y1="104" x2="1022" y2="83"/>
+  </g>
+  <circle cx="930" cy="175" r="72" fill="#FFA000"/>
+
+  <!-- clouds -->
+  <g class="cloud2" fill="#BBDEFB">
+    <path d="M1010 330 h120 a34 34 0 0 0 0-68 a48 48 0 0 0-92-12 a38 38 0 0 0-28 80z"/>
+  </g>
+  <g class="cloud1" fill="#1E88E5" stroke="#E3F2FD" stroke-opacity=".35" stroke-width="3">
+    <path d="M770 330 h200 a50 50 0 0 0 0-100 a72 72 0 0 0-138-18 a58 58 0 0 0-62 118z"/>
+  </g>
+
+  <!-- text -->
+  <g class="fade">
+    <text x="70" y="150" fill="#fff" font-size="64" font-weight="800">Weather App</text>
+  </g>
+  <g class="fade d2">
+    <text x="72" y="196" fill="#E3F2FD" font-size="24" font-weight="400">Live weather &amp; 15-hour forecast for any city on Earth.</text>
+    <text x="72" y="228" fill="#90CAF9" font-size="20">Built with Flutter · Powered by the OpenWeatherMap API</text>
+  </g>
+
+  <!-- chips -->
+  <g class="fade d3" font-size="17" font-weight="600" fill="#fff">
+    <rect x="70" y="270" width="140" height="42" rx="21" fill="url(#glass)" stroke="#fff" stroke-opacity=".3"/>
+    <text x="140" y="297" text-anchor="middle">🔍 City search</text>
+    <rect x="222" y="270" width="150" height="42" rx="21" fill="url(#glass)" stroke="#fff" stroke-opacity=".3"/>
+    <text x="297" y="297" text-anchor="middle">🌗 Light / Dark</text>
+    <rect x="384" y="270" width="160" height="42" rx="21" fill="url(#glass)" stroke="#fff" stroke-opacity=".3"/>
+    <text x="464" y="297" text-anchor="middle">⏱ 5-slot forecast</text>
+    <rect x="556" y="270" width="140" height="42" rx="21" fill="url(#glass)" stroke="#fff" stroke-opacity=".3"/>
+    <text x="626" y="297" text-anchor="middle">🧪 Tested</text>
+  </g>
+
+  <text x="72" y="380" fill="#90CAF9" font-size="15" letter-spacing="2">ANDROID · iOS · WEB · WINDOWS · macOS · LINUX</text>
+</svg>
