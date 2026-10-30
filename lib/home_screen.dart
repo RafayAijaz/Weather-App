@@ -18,25 +18,26 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  late double temp;
-  bool isLoading = false;
+  String currentCity = "Islamabad";
   late Future<Map<String, dynamic>> weather;
   String apiKey = dotenv.env['WEATHER_API_KEY'] ?? '';
+  final TextEditingController _controller = TextEditingController();
 
-  Future<Map<String, dynamic>> getCurrentWeather() async {
+  Future<Map<String, dynamic>> getCurrentWeather({String? city}) async {
     try {
-      isLoading = true;
-      String cityName = "Islamabad";
+      String cityName = city ?? currentCity;
       final res = await http.get(
-        Uri.parse(
-          'https://api.openweathermap.org/data/2.5/forecast?q=$cityName&APPID=$apiKey',
-        ),
+        Uri.https('api.openweathermap.org', 'data/2.5/forecast', {
+          'q': cityName,
+          'APPID': apiKey,
+          'units': 'metric',
+        }),
       );
 
       final data = jsonDecode(res.body);
 
       if (data['cod'] != '200') {
-        throw 'An Unexpected error occurred';
+        throw data['message'] ?? 'An Unexpected error occurred';
       }
 
       return data;
@@ -51,10 +52,19 @@ class _HomeScreenState extends State<HomeScreen> {
     weather = getCurrentWeather();
   }
 
-  void themetoLight() {}
+  void searchCity() {
+    final cityName = _controller.text.trim();
+    if (cityName.isEmpty) return;
+    setState(() {
+      currentCity = cityName;
+      weather = getCurrentWeather(city: currentCity);
+    });
+  }
 
-  double kelvinToCelsius(double value) {
-    return value - 273.15;
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 
   @override
@@ -89,7 +99,7 @@ class _HomeScreenState extends State<HomeScreen> {
             child: IconButton(
               onPressed: () {
                 setState(() {
-                  weather = getCurrentWeather();
+                  weather = getCurrentWeather(city: currentCity);
                 });
               },
               icon: Icon(Icons.restart_alt),
@@ -97,155 +107,196 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      body: FutureBuilder(
-        future: getCurrentWeather(),
-        builder: (context, asyncSnapshot) {
-          if (asyncSnapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator.adaptive());
-          }
-
-          if (asyncSnapshot.hasError) {
-            return Center(child: Text(asyncSnapshot.error.toString()));
-          }
-
-          final data = asyncSnapshot.data!;
-          final currentWeatherData = data['list'][0];
-          final currentTemp = num.parse(
-            (kelvinToCelsius(
-              currentWeatherData['main']['temp'],
-            )).toStringAsFixed(0),
-          );
-          final currentWeather = currentWeatherData['weather'][0]['main'];
-          final currentPressure = currentWeatherData['main']['pressure'];
-          final currentWindSpeed = currentWeatherData['wind']['speed'];
-          final currentHumidity = currentWeatherData['main']['humidity'];
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 10),
-                        child: SizedBox(
-                          width: 200,
-                          child: TextField(
-                            decoration: InputDecoration(
-                              hintText: "Enter City Name",
-                            ),
-                          ),
-                        ),
+      body: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                child: SizedBox(
+                  width: 220,
+                  child: TextField(
+                    controller: _controller,
+                    onSubmitted: (_) => searchCity(),
+                    decoration: InputDecoration(
+                      hintText: "Enter City Name",
+                      prefixIcon: Icon(Icons.search_rounded),
+                      filled: true,
+                      fillColor: Theme.of(
+                        context,
+                      ).colorScheme.surfaceContainerHighest,
+                      contentPadding: EdgeInsets.symmetric(
+                        vertical: 12,
+                        horizontal: 16,
                       ),
-                      SizedBox(width: 10),
-                      ElevatedButton(onPressed: () {}, 
-                      style: ElevatedButton.styleFrom(
-                        
-                      ),
-                      child: Text("Submit")),
-                    ],
-                  ),
-
-                  SizedBox(
-                    width: double.infinity,
-                    child: Card(
-                      elevation: 10,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(16),
-                        child: BackdropFilter(
-                          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 30),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Heading(content: "$currentTemp °C"),
-                                SizedBox(height: 10),
-                                Icon(
-                                  currentWeather == "Clouds" ||
-                                          currentWeather == "Rain"
-                                      ? Icons.cloud
-                                      : Icons.sunny,
-                                  size: 60,
-                                ),
-                                SizedBox(height: 10),
-                                Text(currentWeather),
-                              ],
-                            ),
-                          ),
-                        ),
+                      border: OutlineInputBorder(
+                        borderSide: BorderSide.none,
+                        borderRadius: BorderRadius.circular(12),
                       ),
                     ),
                   ),
-                  SizedBox(height: 20),
-                  Heading(content: "Weather Forecast"),
-                  Column(
-                    children: [
-                      SizedBox(
-                        height: 150,
-                        width: double.infinity,
-                        child: ListView.builder(
-                          scrollDirection: Axis.horizontal,
-                          itemCount: 5,
-                          itemBuilder: (context, index) {
-                            final hourlydata = data['list'][index + 1];
-                            final time = DateTime.parse(hourlydata['dt_txt']);
-                            final hourlyweather =
-                                hourlydata['weather'][0]['main'];
-                            final hourlytemp = num.parse(
-                              kelvinToCelsius(
-                                hourlydata['main']['temp'],
-                              ).toStringAsFixed(0),
-                            );
-
-                            return HourlyUpdate(
-                              hour: DateFormat.j().format(time),
-                              weatherIcon:
-                                  hourlyweather == "Clouds" ||
-                                      hourlyweather == "Rain"
-                                  ? Icons.cloud
-                                  : Icons.sunny,
-                              weatherValue: "${hourlytemp.toString()} °C",
-                            );
-                          },
-                        ),
-                      ),
-                    ],
+                ),
+              ),
+              SizedBox(width: 10),
+              ElevatedButton(
+                onPressed: searchCity,
+                style: ElevatedButton.styleFrom(
+                  padding: EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+                  backgroundColor: Theme.of(context).colorScheme.onSurface,
+                  foregroundColor: Theme.of(context).colorScheme.surface,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                  SizedBox(height: 15),
-                  Heading(content: "Additional Information"),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 10),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                ),
+                child: Text("Submit"),
+              ),
+            ],
+          ),
+          Expanded(
+            child: FutureBuilder(
+              future: weather,
+              builder: (context, asyncSnapshot) {
+                if (asyncSnapshot.connectionState == ConnectionState.waiting) {
+                  return Center(child: CircularProgressIndicator.adaptive());
+                }
+
+                if (asyncSnapshot.hasError) {
+                  return Center(child: Text(asyncSnapshot.error.toString()));
+                }
+
+                final data = asyncSnapshot.data!;
+                final currentWeatherData = data['list'][0];
+                final currentTemp = (currentWeatherData['main']['temp'] as num)
+                    .round();
+
+                final currentWeather = currentWeatherData['weather'][0]['main'];
+                final currentPressure = currentWeatherData['main']['pressure'];
+                final currentWindSpeed = currentWeatherData['wind']['speed'];
+                final currentHumidity = currentWeatherData['main']['humidity'];
+                final selectedCity = data['city']['name'];
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        AdditionalItem(
-                          childicon: Icons.water_drop,
-                          property: "Humidity",
-                          value: currentHumidity.toString(),
+                        SizedBox(
+                          width: double.infinity,
+                          child: Card(
+                            elevation: 10,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(16),
+                              child: BackdropFilter(
+                                filter: ImageFilter.blur(
+                                  sigmaX: 10,
+                                  sigmaY: 10,
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 30,
+                                  ),
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Heading(content: "$currentTemp °C"),
+                                      SizedBox(height: 10),
+                                      Icon(
+                                        currentWeather == "Clouds" ||
+                                                currentWeather == "Rain"
+                                            ? Icons.cloud
+                                            : Icons.sunny,
+                                        size: 60,
+                                      ),
+                                      SizedBox(height: 10),
+                                      Text(currentWeather),
+                                      SizedBox(height: 10),
+                                      Text(
+                                        selectedCity,
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 20,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
                         ),
-                        AdditionalItem(
-                          childicon: Icons.air,
-                          property: "Wind",
-                          value: currentWindSpeed.toString(),
+                        SizedBox(height: 20),
+                        Heading(content: "Weather Forecast"),
+                        Column(
+                          children: [
+                            SizedBox(
+                              height: 150,
+                              width: double.infinity,
+                              child: ListView.builder(
+                                scrollDirection: Axis.horizontal,
+                                itemCount: 5,
+                                itemBuilder: (context, index) {
+                                  final hourlydata = data['list'][index + 1];
+                                  final time =
+                                      DateTime.fromMillisecondsSinceEpoch(
+                                        hourlydata['dt'] * 1000,
+                                      );
+                                  final hourlyweather =
+                                      hourlydata['weather'][0]['main'];
+                                  final hourlytemp =
+                                      (hourlydata['main']['temp'] as num)
+                                          .round();
+
+                                  return HourlyUpdate(
+                                    hour: DateFormat.j().format(time),
+                                    weatherIcon:
+                                        hourlyweather == "Clouds" ||
+                                            hourlyweather == "Rain"
+                                        ? Icons.cloud
+                                        : Icons.sunny,
+                                    weatherValue: "${hourlytemp.toString()} °C",
+                                  );
+                                },
+                              ),
+                            ),
+                          ],
                         ),
-                        AdditionalItem(
-                          childicon: Icons.beach_access,
-                          property: "Pressure",
-                          value: currentPressure.toString(),
+                        SizedBox(height: 15),
+                        Heading(content: "Additional Information"),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                            children: [
+                              AdditionalItem(
+                                childicon: Icons.water_drop,
+                                property: "Humidity",
+                                value: currentHumidity.toString(),
+                              ),
+                              AdditionalItem(
+                                childicon: Icons.air,
+                                property: "Wind",
+                                value: currentWindSpeed.toString(),
+                              ),
+                              AdditionalItem(
+                                childicon: Icons.beach_access,
+                                property: "Pressure",
+                                value: currentPressure.toString(),
+                              ),
+                            ],
+                          ),
                         ),
                       ],
                     ),
                   ),
-                ],
-              ),
+                );
+              },
             ),
-          );
-        },
+          ),
+        ],
       ),
     );
   }

@@ -1,17 +1,39 @@
-# weather_app
+# Weather App
 
-A new Flutter project.
+A Flutter weather app that shows the current weather and a short forecast for any city, using the [OpenWeatherMap](https://openweathermap.org/) API.
 
-## Getting Started
+## Features
 
-This project is a starting point for a Flutter application.
+- Search weather by city name
+- Current temperature, condition, humidity, wind speed and pressure
+- Forecast for the next 15 hours in 3-hour steps
+- Light and dark mode
+- Splash screen and custom launcher icon
 
-A few resources to get you started if this is your first Flutter project:
+## Tech
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+Flutter · Dart · `http` · `intl` · `flutter_dotenv` · OpenWeatherMap 5-day forecast API
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## Getting started
+
+1. Get a free API key from [openweathermap.org](https://home.openweathermap.org/api_keys).
+2. Copy the example env file and add your key:
+   ```sh
+   cp .env.example .env
+   ```
+   ```
+   WEATHER_API_KEY=your_openweathermap_api_key
+   ```
+3. Install packages and run:
+   ```sh
+   flutter pub get
+   flutter run
+   ```
+
+The `.env` file is gitignored, so your key stays out of version control.
+
+## Tests
+
+```sh
+flutter test
+```
