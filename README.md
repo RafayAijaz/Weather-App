@@ -80,9 +80,9 @@ The city name is saved **only after a successful request**, so a typo never brea
 
 | ☀️ Light mode | 🌙 Dark mode |
 |:--:|:--:|
-| <img src="docs/screenshots/light.png" alt="Weather App in light mode showing Islamabad" width="420"/> | <img src="docs/screenshots/dark.png" alt="Weather App in dark mode showing Islamabad" width="420"/> |
+| <img src="docs/screenshots/light.png" alt="Weather App in light mode on a phone showing Islamabad" width="280"/> | <img src="docs/screenshots/dark.png" alt="Weather App in dark mode on a phone showing Islamabad" width="280"/> |
 
-<sub>Real screenshots from the <a href="https://rafayaijaz.github.io/Weather-App/">live web build</a>. Note the forecast switching from day icons (2 PM, 5 PM) to night icons (8 PM onwards).</sub>
+<sub>Real screenshots from the app running on a phone. Note the forecast switching from day icons (2 PM, 5 PM) to a night icon (8 PM).<br/>Want to try it yourself? Open the <a href="https://rafayaijaz.github.io/Weather-App/">live web demo</a>.</sub>
 
 </div>
 
