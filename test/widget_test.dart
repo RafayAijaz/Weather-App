@@ -19,14 +19,14 @@ void main() {
       wrap(
         const HourlyUpdate(
           hour: '3 PM',
-          weatherIcon: Icons.sunny,
+          value: 'assets/images/sun.png',
           weatherValue: '25 °C',
         ),
       ),
     );
 
     expect(find.text('3 PM'), findsOneWidget);
-    expect(find.byIcon(Icons.sunny), findsOneWidget);
+    expect(find.byType(Image), findsOneWidget);
     expect(find.text('25 °C'), findsOneWidget);
   });
 
@@ -34,14 +34,14 @@ void main() {
     await tester.pumpWidget(
       wrap(
         const AdditionalItem(
-          childicon: Icons.water_drop,
+          imageValue: 'assets/images/humidity.png',
           property: 'Humidity',
           value: '60',
         ),
       ),
     );
 
-    expect(find.byIcon(Icons.water_drop), findsOneWidget);
+    expect(find.byType(Image), findsOneWidget);
     expect(find.text('Humidity'), findsOneWidget);
     expect(find.text('60'), findsOneWidget);
   });

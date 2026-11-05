@@ -1,12 +1,9 @@
 import "package:flutter/material.dart";
 import "package:weather_app/splash_screen.dart";
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 
 final ValueNotifier<ThemeMode> themeNotifier = ValueNotifier(ThemeMode.light);
-Future<void> main() async{
-  WidgetsFlutterBinding.ensureInitialized();
-  await dotenv.load(fileName: ".env");
+void main() {
   runApp(MyApp());
 }
 

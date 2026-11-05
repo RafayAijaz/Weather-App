@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 
 class HourlyUpdate extends StatelessWidget {
   final String hour;
-  final IconData weatherIcon;
+  final String value;
   final String weatherValue;
-  const HourlyUpdate({required this.hour, required this.weatherIcon, required this.weatherValue, super.key});
+
+  const HourlyUpdate({required this.hour, required this.value, required this.weatherValue, super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +26,11 @@ class HourlyUpdate extends StatelessWidget {
                 style: TextStyle(fontSize: 19, fontWeight: FontWeight.w500),
               ),
               SizedBox(height: 10),
-              Icon(weatherIcon, size: 30),
+              Image.asset(
+                value, 
+                height: 40,
+                width: 40,
+              ),
               SizedBox(height: 10),
               Text(weatherValue),
             ],

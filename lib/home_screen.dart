@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:ui';
 
@@ -8,7 +9,6 @@ import 'package:weather_app/main.dart';
 import 'package:weather_app/widgets/additional_item.dart';
 import 'package:weather_app/widgets/heading.dart';
 import 'package:weather_app/widgets/hourly_update.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -20,27 +20,43 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   String currentCity = "Islamabad";
   late Future<Map<String, dynamic>> weather;
-  String apiKey = dotenv.env['WEATHER_API_KEY'] ?? '';
+  final String apiKey = const String.fromEnvironment('WEATHER_API_KEY');
   final TextEditingController _controller = TextEditingController();
 
   Future<Map<String, dynamic>> getCurrentWeather({String? city}) async {
+    if (apiKey.isEmpty) {
+      throw 'API key is missing. Run the app with --dart-define-from-file=.env';
+    }
+
     try {
       String cityName = city ?? currentCity;
-      final res = await http.get(
-        Uri.https('api.openweathermap.org', 'data/2.5/forecast', {
-          'q': cityName,
-          'APPID': apiKey,
-          'units': 'metric',
-        }),
-      );
+      final params = {'q': cityName, 'APPID': apiKey, 'units': 'metric'};
 
-      final data = jsonDecode(res.body);
+      final responses = await Future.wait([
+        http.get(
+          Uri.https('api.openweathermap.org', 'data/2.5/weather', params),
+        ),
+        http.get(
+          Uri.https('api.openweathermap.org', 'data/2.5/forecast', params),
+        ),
+      ]).timeout(const Duration(seconds: 15));
 
-      if (data['cod'] != '200') {
-        throw data['message'] ?? 'An Unexpected error occurred';
+      final current = jsonDecode(responses[0].body);
+      final forecast = jsonDecode(responses[1].body);
+
+      if (current['cod'].toString() != '200') {
+        throw current['message'] ?? 'An Unexpected error occurred';
+      }
+      if (forecast['cod'].toString() != '200') {
+        throw forecast['message'] ?? 'An Unexpected error occurred';
       }
 
-      return data;
+      currentCity = cityName;
+      return {'current': current, 'forecast': forecast};
+    } on TimeoutException {
+      throw 'The request timed out. Please try again.';
+    } on http.ClientException {
+      throw 'No internet connection. Please check your network and try again.';
     } catch (e) {
       throw e.toString();
     }
@@ -56,9 +72,35 @@ class _HomeScreenState extends State<HomeScreen> {
     final cityName = _controller.text.trim();
     if (cityName.isEmpty) return;
     setState(() {
-      currentCity = cityName;
-      weather = getCurrentWeather(city: currentCity);
+      weather = getCurrentWeather(city: cityName);
     });
+  }
+
+  String getWeatherIcon(String mainCondition, String iconCode) {
+    bool isNight = iconCode.endsWith('n');
+
+    switch (mainCondition.toLowerCase()) {
+      case 'clear':
+        return isNight ? 'assets/images/moon.png' : 'assets/images/sun.png';
+
+      case 'clouds':
+        return isNight
+            ? 'assets/images/cloudy-night.png'
+            : 'assets/images/cloudy-day.png';
+
+      case 'rain':
+      case 'drizzle':
+        return 'assets/images/rain.png';
+
+      case 'thunderstorm':
+        return 'assets/images/thunderstorm.png';
+
+      case 'snow':
+        return 'assets/images/snow.png';
+
+      default:
+        return 'assets/images/cloud.png';
+    }
   }
 
   @override
@@ -166,7 +208,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 }
 
                 final data = asyncSnapshot.data!;
-                final currentWeatherData = data['list'][0];
+                final currentWeatherData = data['current'];
+                final forecastData = data['forecast'];
                 final currentTemp = (currentWeatherData['main']['temp'] as num)
                     .round();
 
@@ -174,7 +217,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 final currentPressure = currentWeatherData['main']['pressure'];
                 final currentWindSpeed = currentWeatherData['wind']['speed'];
                 final currentHumidity = currentWeatherData['main']['humidity'];
-                final selectedCity = data['city']['name'];
+                final selectedCity = currentWeatherData['name'];
+                final String iconCode =
+                    currentWeatherData['weather'][0]['icon'];
+                final int timezone = forecastData['city']['timezone'];
+
                 return Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: SingleChildScrollView(
@@ -204,12 +251,13 @@ class _HomeScreenState extends State<HomeScreen> {
                                     children: [
                                       Heading(content: "$currentTemp °C"),
                                       SizedBox(height: 10),
-                                      Icon(
-                                        currentWeather == "Clouds" ||
-                                                currentWeather == "Rain"
-                                            ? Icons.cloud
-                                            : Icons.sunny,
-                                        size: 60,
+                                      Image.asset(
+                                        getWeatherIcon(
+                                          currentWeather,
+                                          iconCode,
+                                        ),
+                                        height: 60,
+                                        width: 60,
                                       ),
                                       SizedBox(height: 10),
                                       Text(currentWeather),
@@ -233,31 +281,33 @@ class _HomeScreenState extends State<HomeScreen> {
                         Column(
                           children: [
                             SizedBox(
-                              height: 150,
+                              height: 160,
                               width: double.infinity,
                               child: ListView.builder(
                                 scrollDirection: Axis.horizontal,
                                 itemCount: 5,
                                 itemBuilder: (context, index) {
-                                  final hourlydata = data['list'][index + 1];
+                                  final hourlydata =
+                                      forecastData['list'][index];
                                   final time =
                                       DateTime.fromMillisecondsSinceEpoch(
-                                        hourlydata['dt'] * 1000,
+                                        (hourlydata['dt'] + timezone) * 1000,
+                                        isUtc: true,
                                       );
                                   final hourlyweather =
                                       hourlydata['weather'][0]['main'];
+                                  final String hourlyIconCode =
+                                      hourlydata['weather'][0]['icon'];
                                   final hourlytemp =
                                       (hourlydata['main']['temp'] as num)
                                           .round();
-
                                   return HourlyUpdate(
                                     hour: DateFormat.j().format(time),
-                                    weatherIcon:
-                                        hourlyweather == "Clouds" ||
-                                            hourlyweather == "Rain"
-                                        ? Icons.cloud
-                                        : Icons.sunny,
-                                    weatherValue: "${hourlytemp.toString()} °C",
+                                    value: getWeatherIcon(
+                                      hourlyweather,
+                                      hourlyIconCode,
+                                    ),
+                                    weatherValue: "$hourlytemp °C",
                                   );
                                 },
                               ),
@@ -272,19 +322,19 @@ class _HomeScreenState extends State<HomeScreen> {
                             mainAxisAlignment: MainAxisAlignment.spaceAround,
                             children: [
                               AdditionalItem(
-                                childicon: Icons.water_drop,
+                                imageValue: "assets/images/humidity.png",
                                 property: "Humidity",
-                                value: currentHumidity.toString(),
+                                value: "$currentHumidity %",
                               ),
                               AdditionalItem(
-                                childicon: Icons.air,
+                                imageValue: "assets/images/wind.png",
                                 property: "Wind",
-                                value: currentWindSpeed.toString(),
+                                value: "$currentWindSpeed m/s",
                               ),
                               AdditionalItem(
-                                childicon: Icons.beach_access,
+                                imageValue: "assets/images/pressure.png",
                                 property: "Pressure",
-                                value: currentPressure.toString(),
+                                value: "$currentPressure hPa",
                               ),
                             ],
                           ),
